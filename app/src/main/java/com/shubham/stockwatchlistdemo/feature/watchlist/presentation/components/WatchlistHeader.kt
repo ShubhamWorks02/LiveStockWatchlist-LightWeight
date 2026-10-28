@@ -242,7 +242,7 @@ fun ConnectionBadge(
         is MarketConnectionState.Connecting -> Triple(AccentBlue, "CONNECTING", false)
         is MarketConnectionState.Reconnecting -> Triple(
             StatusAmber,
-            "RETRY ${connectionState.attempt}/${connectionState.maxAttempts}",
+            "RECONNECTING",
             false
         )
         is MarketConnectionState.Error -> Triple(StatusRed, "FAILED • RETRY", true)
