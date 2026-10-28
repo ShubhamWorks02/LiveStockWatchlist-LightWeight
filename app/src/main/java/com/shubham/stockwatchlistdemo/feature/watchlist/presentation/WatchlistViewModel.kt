@@ -191,23 +191,32 @@ class WatchlistViewModel(
             uiModel
         }
 
-        // Apply search query filter
+        // Apply search query filter with ranking
         val filteredByQuery = if (query.isBlank()) {
-            mappedList
+            mappedList.map { it to 0 }
         } else {
             val normalized = query.trim().lowercase(Locale.US)
-            mappedList.filter {
-                it.symbol.lowercase(Locale.US).contains(normalized) ||
-                it.name.lowercase(Locale.US).contains(normalized) ||
-                it.baseAsset.lowercase(Locale.US).contains(normalized)
-            }
+            mappedList.map { uiModel ->
+                var score = 0
+                val symbol = uiModel.symbol.lowercase(Locale.US)
+                val name = uiModel.name.lowercase(Locale.US)
+                val base = uiModel.baseAsset.lowercase(Locale.US)
+                if (symbol.startsWith(normalized)) score = 3
+                else if (symbol.contains(normalized)) score = 2
+                else if (name.contains(normalized)) score = 1
+                else if (base.contains(normalized)) score = 0
+                uiModel to score
+            }.filter { it.second > 0 }
         }
+
+        // Sort by score descending before applying category filter
+        val scoredList = filteredByQuery.sortedByDescending { it.second }.map { it.first }
 
         // Apply category / gainer-loser filter
         val filteredByCategory = when (filter) {
-            WatchlistFilter.ALL -> filteredByQuery
-            WatchlistFilter.GAINERS -> filteredByQuery.filter { it.isPositiveChange == true }
-            WatchlistFilter.LOSERS -> filteredByQuery.filter { it.isPositiveChange == false }
+            WatchlistFilter.ALL -> scoredList
+            WatchlistFilter.GAINERS -> scoredList.filter { it.isPositiveChange == true }
+            WatchlistFilter.LOSERS -> scoredList.filter { it.isPositiveChange == false }
         }
 
         // Apply sorting

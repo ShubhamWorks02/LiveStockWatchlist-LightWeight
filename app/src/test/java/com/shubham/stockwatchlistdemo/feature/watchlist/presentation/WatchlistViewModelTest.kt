@@ -3,6 +3,8 @@ package com.shubham.stockwatchlistdemo.feature.watchlist.presentation
 import com.shubham.stockwatchlistdemo.core.model.MarketConnectionState
 import com.shubham.stockwatchlistdemo.core.model.MarketInstrument
 import com.shubham.stockwatchlistdemo.core.model.MarketPriceUpdate
+import com.shubham.stockwatchlistdemo.feature.watchlist.presentation.WatchlistFilter
+import com.shubham.stockwatchlistdemo.feature.watchlist.presentation.WatchlistSortOption
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -11,8 +13,9 @@ import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Before
 import org.junit.Test
 
@@ -74,18 +77,12 @@ class WatchlistViewModelTest {
 
     @Test
     fun disconnection_retainsLastKnownPrices() {
-        // Feed initial prices
         viewModel.processPriceUpdate(MarketPriceUpdate("BTCUSDT", 68500.0))
         viewModel.processPriceUpdate(MarketPriceUpdate("ETHUSDT", 2600.0))
-
-        // Connection drops
         fakeRepository.connectionStateFlow.value = MarketConnectionState.Disconnected
-
         val state = viewModel.uiState.value
         val btc = state.instruments.first { it.id == "BTCUSDT" }
         val eth = state.instruments.first { it.id == "ETHUSDT" }
-
-        // Data is not wiped merely because network disconnected
         assertEquals("$68,500.00", btc.formattedPrice)
         assertEquals("$2,600.00", eth.formattedPrice)
     }
@@ -93,7 +90,6 @@ class WatchlistViewModelTest {
     @Test
     fun searchQuery_filtersInstruments() {
         viewModel.onSearchQueryChanged("eth")
-
         val state = viewModel.uiState.value
         assertEquals(1, state.instruments.size)
         assertEquals("ETHUSDT", state.instruments[0].id)
@@ -112,30 +108,33 @@ class WatchlistViewModelTest {
 
     @Test
     fun filterOptions_filtersGainersAndLosers() {
-        // BTC gains: baseline 60000 -> 65000 (+8.33%)
+        // BTC gains
         viewModel.processPriceUpdate(MarketPriceUpdate("BTCUSDT", 60000.0))
         viewModel.processPriceUpdate(MarketPriceUpdate("BTCUSDT", 65000.0))
-
-        // ETH drops: baseline 3000 -> 2800 (-6.67%)
+        // ETH loses
         viewModel.processPriceUpdate(MarketPriceUpdate("ETHUSDT", 3000.0))
         viewModel.processPriceUpdate(MarketPriceUpdate("ETHUSDT", 2800.0))
 
-        // Filter Gainers
         viewModel.onFilterSelected(WatchlistFilter.GAINERS)
         var state = viewModel.uiState.value
         assertEquals(1, state.instruments.size)
         assertEquals("BTCUSDT", state.instruments[0].id)
 
-        // Filter Losers
         viewModel.onFilterSelected(WatchlistFilter.LOSERS)
         state = viewModel.uiState.value
         assertEquals(1, state.instruments.size)
         assertEquals("ETHUSDT", state.instruments[0].id)
 
-        // Filter All
         viewModel.onFilterSelected(WatchlistFilter.ALL)
         state = viewModel.uiState.value
         assertEquals(4, state.instruments.size)
+    }
+
+    @Test
+    fun searchRanking_prefersSymbolPrefixOverContainsAndName() {
+        viewModel.onSearchQueryChanged("btc")
+        val ids = viewModel.uiState.value.instruments.map { it.id }
+        assertEquals(listOf("BTCUSDT"), ids.take(1))
     }
 
     @Test
@@ -145,7 +144,6 @@ class WatchlistViewModelTest {
         viewModel.processPriceUpdate(MarketPriceUpdate("SOLUSDT", 150.0))
         viewModel.processPriceUpdate(MarketPriceUpdate("DOGEUSDT", 0.15))
 
-        // Price Descending
         viewModel.onSortSelected(WatchlistSortOption.PRICE_DESC)
         var state = viewModel.uiState.value
         assertEquals("BTCUSDT", state.instruments[0].id)
@@ -153,7 +151,6 @@ class WatchlistViewModelTest {
         assertEquals("SOLUSDT", state.instruments[2].id)
         assertEquals("DOGEUSDT", state.instruments[3].id)
 
-        // Price Ascending
         viewModel.onSortSelected(WatchlistSortOption.PRICE_ASC)
         state = viewModel.uiState.value
         assertEquals("DOGEUSDT", state.instruments[0].id)

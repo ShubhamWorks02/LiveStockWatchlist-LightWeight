@@ -33,9 +33,12 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
+
+
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -44,6 +47,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
@@ -161,7 +169,8 @@ fun WatchlistHeader(
                     ),
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(50.dp),
+                        .height(50.dp)
+                        .focusRequester(focusRequester),
                     trailingIcon = {
                         if (searchQuery.isNotEmpty()) {
                             IconButton(onClick = { onSearchQueryChanged("") }) {
@@ -189,49 +198,52 @@ fun WatchlistHeader(
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        // Filter and Sort Chips Row
-        Row(
+        // Filter and Sort Chips Row – now placed in a horizontally scrollable LazyRow
+        androidx.compose.foundation.lazy.LazyRow(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            // Filter options
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                WatchlistFilter.entries.forEach { filter ->
-                    val isSelected = filter == activeFilter
-                    FilterChip(
-                        selected = isSelected,
-                        onClick = { onFilterSelected(filter) },
-                        label = {
-                            Text(
-                                text = filter.displayName,
-                                style = androidx.compose.ui.text.TextStyle(
-                                    fontSize = 11.sp,
-                                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
-                                )
+            // Filter chips
+            items(WatchlistFilter.entries.size) { index ->
+                val filter = WatchlistFilter.entries[index]
+                val isSelected = filter == activeFilter
+                FilterChip(
+                    selected = isSelected,
+                    onClick = { onFilterSelected(filter) },
+                    label = {
+                        Text(
+                            text = filter.displayName,
+                            style = androidx.compose.ui.text.TextStyle(
+                                fontSize = 11.sp,
+                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
                             )
-                        },
-                        colors = FilterChipDefaults.filterChipColors(
-                            containerColor = DarkSurface,
-                            labelColor = TextSecondary,
-                            selectedContainerColor = AccentBlue.copy(alpha = 0.2f),
-                            selectedLabelColor = AccentBlue
-                        ),
-                        border = FilterChipDefaults.filterChipBorder(
-                            borderColor = DarkBorder,
-                            selectedBorderColor = AccentBlue,
-                            enabled = true,
-                            selected = isSelected
                         )
-                    )
-                }
+                    },
+                    colors = FilterChipDefaults.filterChipColors(
+                        containerColor = DarkSurface,
+                        labelColor = TextSecondary,
+                        selectedContainerColor = AccentBlue.copy(alpha = 0.2f),
+                        selectedLabelColor = AccentBlue
+                    ),
+                    border = FilterChipDefaults.filterChipBorder(
+                        borderColor = DarkBorder,
+                        selectedBorderColor = AccentBlue,
+                        enabled = true,
+                        selected = isSelected
+                    ),
+                    // Accessibility description
+                    modifier = androidx.compose.ui.Modifier.semantics {
+                        contentDescription = "Filter ${filter.displayName}, ${if (isSelected) "selected" else "not selected"}"
+                    }
+                )
             }
-
-            // Quick Sort Button
-            SortMenuPill(
-                activeSort = activeSort,
-                onSortSelected = onSortSelected
-            )
+            // Sort button as the last item
+            item {
+                SortMenuPill(
+                    activeSort = activeSort,
+                    onSortSelected = onSortSelected
+                )
+            }
         }
     }
 }
