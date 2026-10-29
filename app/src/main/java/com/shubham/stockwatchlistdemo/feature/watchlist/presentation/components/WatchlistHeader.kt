@@ -34,7 +34,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -44,7 +44,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import com.shubham.stockwatchlistdemo.core.designsystem.theme.AccentBlue
 import com.shubham.stockwatchlistdemo.core.designsystem.theme.DarkBackground
 import com.shubham.stockwatchlistdemo.core.designsystem.theme.DarkBorder
@@ -79,6 +81,8 @@ fun WatchlistHeader(
     modifier: Modifier = Modifier
 ) {
     var isSearchExpanded by remember { mutableStateOf(false) }
+    val focusRequester = remember { FocusRequester() }
+    val keyboardController = LocalSoftwareKeyboardController.current
 
     Column(
         modifier = modifier
@@ -86,6 +90,14 @@ fun WatchlistHeader(
             .background(DarkBackground)
             .padding(horizontal = 16.dp, vertical = 8.dp)
     ) {
+        // Request focus and show keyboard when search expands
+        LaunchedEffect(isSearchExpanded) {
+            if (isSearchExpanded) {
+                focusRequester.requestFocus()
+                keyboardController?.show()
+            }
+        }
+
         // App Title Row with Connection Status Badge
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -113,20 +125,13 @@ fun WatchlistHeader(
             }
 
             Row(verticalAlignment = Alignment.CenterVertically) {
-                IconButton(
-                    onClick = { isSearchExpanded = !isSearchExpanded },
-                    modifier = Modifier.size(36.dp)
-                ) {
+                IconButton(onClick = { isSearchExpanded = !isSearchExpanded }) {
                     Icon(
-                        imageVector = if (isSearchExpanded) Icons.Default.Close else Icons.Default.Search,
-                        contentDescription = "Toggle Search",
-                        tint = TextSecondary,
-                        modifier = Modifier.size(20.dp)
+                        imageVector = Icons.Default.Search,
+                        contentDescription = "Search",
+                        tint = TextSecondary
                     )
                 }
-
-                Spacer(modifier = Modifier.width(8.dp))
-
                 ConnectionBadge(
                     connectionState = connectionState,
                     onRetryClicked = onRetryClicked
