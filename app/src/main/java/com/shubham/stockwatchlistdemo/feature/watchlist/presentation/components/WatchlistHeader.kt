@@ -213,52 +213,57 @@ fun WatchlistHeader(
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        // Filter and Sort Chips Row – now placed in a horizontally scrollable LazyRow
-        androidx.compose.foundation.lazy.LazyRow(
+        // Filter and Sort Chips Row – aligned with filter chips on the left and sort pill on the right
+        Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            // Filter chips
-            items(WatchlistFilter.entries.size) { index ->
-                val filter = WatchlistFilter.entries[index]
-                val isSelected = filter == activeFilter
-                FilterChip(
-                    selected = isSelected,
-                    onClick = { onFilterSelected(filter) },
-                    label = {
-                        Text(
-                            text = filter.displayName,
-                            style = androidx.compose.ui.text.TextStyle(
-                                fontSize = 11.sp,
-                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
+            // Filter chips in a scrollable LazyRow taking remaining space
+            LazyRow(
+                modifier = Modifier.weight(1f),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                items(WatchlistFilter.entries.size) { index ->
+                    val filter = WatchlistFilter.entries[index]
+                    val isSelected = filter == activeFilter
+                    FilterChip(
+                        selected = isSelected,
+                        onClick = { onFilterSelected(filter) },
+                        label = {
+                            Text(
+                                text = filter.displayName,
+                                style = androidx.compose.ui.text.TextStyle(
+                                    fontSize = 11.sp,
+                                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
+                                )
                             )
-                        )
-                    },
-                    colors = FilterChipDefaults.filterChipColors(
-                        containerColor = DarkSurface,
-                        labelColor = TextSecondary,
-                        selectedContainerColor = AccentBlue.copy(alpha = 0.2f),
-                        selectedLabelColor = AccentBlue
-                    ),
-                    border = FilterChipDefaults.filterChipBorder(
-                        borderColor = DarkBorder,
-                        selectedBorderColor = AccentBlue,
-                        enabled = true,
-                        selected = isSelected
-                    ),
-                    // Accessibility description
-                    modifier = androidx.compose.ui.Modifier.semantics {
-                        contentDescription = "Filter ${filter.displayName}, ${if (isSelected) "selected" else "not selected"}"
-                    }
-                )
+                        },
+                        colors = FilterChipDefaults.filterChipColors(
+                            containerColor = DarkSurface,
+                            labelColor = TextSecondary,
+                            selectedContainerColor = AccentBlue.copy(alpha = 0.2f),
+                            selectedLabelColor = AccentBlue
+                        ),
+                        border = FilterChipDefaults.filterChipBorder(
+                            borderColor = DarkBorder,
+                            selectedBorderColor = AccentBlue,
+                            enabled = true,
+                            selected = isSelected
+                        ),
+                        modifier = Modifier.semantics {
+                            contentDescription = "Filter ${filter.displayName}, ${if (isSelected) "selected" else "not selected"}"
+                        }
+                    )
+                }
             }
-            // Sort button as the last item
-            item {
-                SortMenuPill(
-                    activeSort = activeSort,
-                    onSortSelected = onSortSelected
-                )
-            }
+            // Sort button anchored at end
+            SortMenuPill(
+                activeSort = activeSort,
+                onSortSelected = onSortSelected,
+                modifier = Modifier.padding(start = 8.dp)
+            )
         }
     }
 }
