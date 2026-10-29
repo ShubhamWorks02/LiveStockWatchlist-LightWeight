@@ -133,4 +133,31 @@ class WatchlistScreenTest {
         composeTestRule.onNodeWithText("Retry Connection").performClick()
         assertTrue(retryTriggered)
     }
+
+    @Test
+    fun watchlistScreen_showsNoResultsViewWhenSearchYieldsEmptyList() {
+        val query = "XYZ"
+        val state = WatchlistUiState(
+            connectionState = MarketConnectionState.Connected,
+            instruments = emptyList(),
+            searchQuery = query,
+            rawInstrumentsCount = 0
+        )
+
+        composeTestRule.setContent {
+            StockWatchListTheme {
+                WatchlistScreen(
+                    uiState = state,
+                    onSearchQueryChanged = {},
+                    onFilterSelected = {},
+                    onSortSelected = {},
+                    onRetryClicked = {}
+                )
+            }
+        }
+
+        // Verify the placeholder texts from EmptyWatchlistView are displayed
+        composeTestRule.onNodeWithText("No matching instruments").assertIsDisplayed()
+        composeTestRule.onNodeWithText("No pairs found matching \"$query\". Check for typos or clear your search filter.").assertIsDisplayed()
+    }
 }
