@@ -154,9 +154,21 @@ fun WatchlistHeader(
             exit = fadeOut()
         ) {
             Column(modifier = Modifier.padding(top = 10.dp)) {
+                // Local mutable state to avoid cursor jump due to delayed UI state updates
+                var localSearch by remember { mutableStateOf(searchQuery) }
+                // Sync with external ViewModel changes
+                LaunchedEffect(searchQuery) {
+                    if (searchQuery != localSearch) {
+                        localSearch = searchQuery
+                    }
+                }
+
                 OutlinedTextField(
-                    value = searchQuery,
-                    onValueChange = onSearchQueryChanged,
+                    value = localSearch,
+                    onValueChange = { newText ->
+                        localSearch = newText
+                        onSearchQueryChanged(newText)
+                    },
                     placeholder = { Text("Search by symbol (e.g. BTC, ETH)", color = TextTertiary, fontSize = 13.sp) },
                     singleLine = true,
                     colors = OutlinedTextFieldDefaults.colors(
@@ -172,8 +184,11 @@ fun WatchlistHeader(
                         .height(50.dp)
                         .focusRequester(focusRequester),
                     trailingIcon = {
-                        if (searchQuery.isNotEmpty()) {
-                            IconButton(onClick = { onSearchQueryChanged("") }) {
+                        if (localSearch.isNotEmpty()) {
+                            IconButton(onClick = {
+                                localSearch = ""
+                                onSearchQueryChanged("")
+                            }) {
                                 Icon(
                                     imageVector = Icons.Default.Close,
                                     contentDescription = "Clear search",
