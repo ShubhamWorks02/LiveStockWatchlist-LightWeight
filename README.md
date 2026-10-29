@@ -1,16 +1,33 @@
 # Real-Time Market Watchlist (Android)
 
-A high-performance, real-time native Android market watchlist built with Jetpack Compose, Kotlin Coroutines & Flow, and an OkHttp WebSocket pipeline streaming live cryptocurrency trades from Binance.
+[![Android](https://img.shields.io/badge/Platform-Android-3DDC84?logo=android&logoColor=white)](https://developer.android.com)
+[![Kotlin](https://img.shields.io/badge/Kotlin-2.0-7F52FF?logo=kotlin&logoColor=white)](https://kotlinlang.org)
+[![Compose](https://img.shields.io/badge/Jetpack%20Compose-BOM%202025-4285F4?logo=jetpackcompose&logoColor=white)](https://developer.android.com/jetpack/compose)
+[![Coroutines](https://img.shields.io/badge/Coroutines%20%26%20Flow-1.10-7F52FF)](https://github.com/Kotlin/kotlinx.coroutines)
+[![OkHttp WebSocket](https://img.shields.io/badge/OkHttp-WebSocket-00A98F)](https://square.github.io/okhttp/)
+[![Tests](https://img.shields.io/badge/Unit%20Tests-Passing%20(28%2F28)-success)](https://github.com/ShubhamWorks02/LiveStockWatchlist-LightWeight)
 
-Designed and engineered with a focus on **Compose rendering performance**, **unidirectional reactive state flow**, **lifecycle-aware network transport**, and **clean architectural separation**.
+A high-performance, real-time native Android market watchlist built with **Jetpack Compose**, **Kotlin Coroutines & Flow**, and an **OkHttp WebSocket pipeline** streaming live cryptocurrency trades from Binance.
+
+Designed and engineered with an uncompromising focus on **Compose rendering performance**, **unidirectional reactive state flow**, **lifecycle-aware network transport**, and **clean architectural separation**.
 
 ---
 
-## Screenshot
+## Application Showcase
 
 <p align="center">
   <img src="docs/images/screenshot_watchlist.png" alt="Running Application on Device" width="360" />
+  <br />
+  <em>Live crypto pair feed featuring real-time price updates, localized animations, search, filters, and aggregate metrics.</em>
 </p>
+
+### Key Features
+- **Live Binance WebSocket Stream**: Multi-endpoint resilient WebSocket connection with exponential backoff and jitter.
+- **50ms State Coalescing**: Throttles high-frequency packet bursts to prevent main-thread UI thrashing while keeping price fidelity.
+- **Directional Price Animations**: Localized green/red animatables triggered via counter increments, preventing outer list recomposition.
+- **Instant Search with Stable Cursor**: Local state synchronization prevents cursor jump when typing rapidly.
+- **Category Filters & Quick Sort**: Seamlessly switch between All, Gainers, and Losers, or sort by Price / 24h Change.
+- **Comprehensive Offline & Disconnection Handling**: Preserves last-known prices and session extremes during connectivity loss.
 
 ---
 
